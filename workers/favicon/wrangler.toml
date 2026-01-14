@@ -1,0 +1,6 @@
+name = "favicon-du-dev"
+main = "src/index.ts"
+compatibility_date = "2026-01-14"
+
+[observability]
+enabled = true

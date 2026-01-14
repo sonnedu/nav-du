@@ -1,0 +1,46 @@
+site:
+  title: "nav.du.dev"
+  description: "常用网站导航"
+  defaultTheme: "system"
+
+categories:
+  - id: dev
+    name: "开发"
+    order: 1
+    items:
+      - id: github
+        name: "GitHub"
+        url: "https://github.com"
+        desc: "代码托管与协作"
+        tags: ["code", "git"]
+      - id: npm
+        name: "npm"
+        url: "https://www.npmjs.com"
+        desc: "Node 包管理"
+
+  - id: ai
+    name: "AI"
+    order: 2
+    items:
+      - id: chatgpt
+        name: "ChatGPT"
+        url: "https://chat.openai.com"
+        desc: "对话式 AI"
+
+  - id: tools
+    name: "工具"
+    order: 3
+    items:
+      - id: tool-lu
+        name: "Tool.lu"
+        url: "https://tool.lu"
+        desc: "在线工具箱"
+
+  - id: misc
+    name: "其他"
+    order: 99
+    items:
+      - id: cloudflare
+        name: "Cloudflare"
+        url: "https://dash.cloudflare.com"
+        desc: "DNS / Pages / Workers 管理"
