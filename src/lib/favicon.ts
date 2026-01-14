@@ -1,6 +1,6 @@
 import type { IconConfig, NavLink } from './navTypes';
 
-const DEFAULT_FAVICON_PROXY = import.meta.env.VITE_FAVICON_PROXY_BASE ?? 'https://favicon.du.dev/ico';
+const DEFAULT_FAVICON_PROXY = import.meta.env.VITE_FAVICON_PROXY_BASE ?? '';
 
 export const DEFAULT_ICON_DATA_URI =
   'data:image/svg+xml;utf8,' +
@@ -20,8 +20,17 @@ export function getLinkIconUrl(link: NavLink, faviconProxyBaseUrl = DEFAULT_FAVI
   const icon = link.icon;
 
   if (!icon || icon.type === 'proxy') {
-    const encoded = encodeURIComponent(link.url);
-    return `${faviconProxyBaseUrl}?url=${encoded}`;
+    if (faviconProxyBaseUrl) {
+      const encoded = encodeURIComponent(link.url);
+      return `${faviconProxyBaseUrl}?url=${encoded}`;
+    }
+
+    try {
+      const host = new URL(link.url).hostname;
+      return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+    } catch {
+      return DEFAULT_ICON_DATA_URI;
+    }
   }
 
   if (icon.type === 'url') return icon.value;

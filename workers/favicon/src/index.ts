@@ -93,7 +93,7 @@ function isSafeHostname(hostname: string): boolean {
 }
 
 function buildCacheKey(origin: string): Request {
-  return new Request(`https://favicon.du.dev/cache?origin=${encodeURIComponent(origin)}`);
+  return new Request(`https://favicon-proxy.invalid/cache?origin=${encodeURIComponent(origin)}`);
 }
 
 function withCommonHeaders(resp: Response): Response {

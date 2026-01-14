@@ -1,5 +1,5 @@
-const NAV_STORAGE_KEY = 'nav.du.dev/nav-config-override';
-const THEME_STORAGE_KEY = 'nav.du.dev/theme-mode';
+const NAV_STORAGE_KEY = 'nav-du/nav-config-override';
+const THEME_STORAGE_KEY = 'nav-du/theme-mode';
 
 export function loadNavOverride(): unknown | null {
   try {

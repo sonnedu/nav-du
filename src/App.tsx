@@ -26,12 +26,15 @@ export default function App() {
   const pathname = usePathname();
   const admin = useMemo(() => isAdminPath(pathname), [pathname]);
 
-  const title = config.site.title || 'nav.du.dev';
+  const title = config.site.title || 'nav-du';
   const subtitle = config.site.description || '';
 
-  const sidebarTitle = (coerceEnvString(import.meta.env.VITE_SIDEBAR_TITLE) || config.site.sidebarTitle || '我的收藏').trim();
-  const bannerTitle = (coerceEnvString(import.meta.env.VITE_BANNER_TITLE) || config.site.bannerTitle || "sonnedu’s 收藏夹").trim();
+  const sidebarAvatarSrc = (coerceEnvString(import.meta.env.VITE_SIDEBAR_AVATAR_SRC) || config.site.sidebarAvatarSrc || '').trim();
+
+  const sidebarTitle = (coerceEnvString(import.meta.env.VITE_SIDEBAR_TITLE) || config.site.sidebarTitle || 'Nav-Du').trim();
+  const bannerTitle = (coerceEnvString(import.meta.env.VITE_BANNER_TITLE) || config.site.bannerTitle || '我的收藏夹').trim();
   const timeZone = (coerceEnvString(import.meta.env.VITE_TIME_ZONE) || config.site.timeZone || 'Asia/Shanghai').trim();
+  const faviconProxyBase = (coerceEnvString(import.meta.env.VITE_FAVICON_PROXY_BASE) || config.site.faviconProxyBase || '').trim();
 
   const onSaveConfig = async (next: NavConfig) => {
     const ok = await saveConfigRemote(next);
@@ -60,9 +63,11 @@ export default function App() {
     <NavPage
       config={config}
       sidebarTitle={sidebarTitle}
+      sidebarAvatarSrc={sidebarAvatarSrc}
       bannerTitle={bannerTitle}
       subtitle={subtitle}
       timeZone={timeZone}
+      faviconProxyBase={faviconProxyBase}
       resolvedTheme={resolved}
       onToggleTheme={toggleLightDark}
     />

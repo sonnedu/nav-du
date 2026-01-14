@@ -2,6 +2,28 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { applyDefaultIconOnError, getLinkIconUrl } from '../lib/favicon';
 import type { IndexedNavLink, NavCategory, NavConfig } from '../lib/navTypes';
+
+const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
+  dev: '💻',
+  ai: '🤖',
+  tools: '🧰',
+  docs: '📚',
+  search: '🔎',
+  productivity: '✅',
+  design: '🎨',
+  cloud: '☁️',
+  devops: '⚙️',
+  news: '📰',
+  video: '🎬',
+  shopping: '🛒',
+  finance: '💰',
+  misc: '📌',
+};
+
+function getCategoryIcon(category: NavCategory): string {
+  return category.icon || DEFAULT_CATEGORY_ICONS[category.id] || '📌';
+}
+
 import { createNavFuseIndex, indexNavLinks, searchNav } from '../lib/search';
 import { useScrollProgress, scrollToTop } from '../lib/useScrollProgress';
 
@@ -71,6 +93,15 @@ function IconHamburger() {
   );
 }
 
+function IconPanelLeft() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 5h16v14H4z" stroke="currentColor" strokeWidth="2" />
+      <path d="M9 5v14" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
 function sectionId(categoryId: string): string {
   return `cat-${categoryId}`;
 }
@@ -119,15 +150,18 @@ function useActiveCategoryObserver(categories: NavCategory[], onActive: (categor
 export function NavPage(props: {
   config: NavConfig;
   sidebarTitle: string;
+  sidebarAvatarSrc: string;
   bannerTitle: string;
   subtitle: string;
   timeZone: string;
+  faviconProxyBase: string;
   resolvedTheme: 'light' | 'dark';
   onToggleTheme: () => void;
 }) {
   const { config } = props;
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarHidden, setSidebarHidden] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState(() => config.categories[0]?.id ?? '');
 
   useActiveCategoryObserver(config.categories, (categoryId) => {
@@ -177,11 +211,15 @@ export function NavPage(props: {
   }, [now, props.timeZone]);
 
   return (
-    <div className="app-shell app-shell--with-sidebar">
+    <div className={`app-shell app-shell--with-sidebar ${sidebarHidden ? 'app-shell--sidebar-hidden' : ''}`}>
       {sidebarOpen ? <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} /> : null}
 
       <aside className={`sidebar ${sidebarOpen ? 'is-open' : ''}`}>
         <div className="sidebar-header">
+          {props.sidebarAvatarSrc ? (
+            <img className="sidebar-avatar" src={props.sidebarAvatarSrc} alt="avatar" loading="lazy" />
+          ) : null}
+
           <div className="sidebar-brand">
             <div className="sidebar-title">{props.sidebarTitle}</div>
             {props.subtitle ? <div className="sidebar-subtitle">{props.subtitle}</div> : null}
@@ -200,8 +238,8 @@ export function NavPage(props: {
               }}
               title={c.name}
             >
+              <span className="category-icon" aria-hidden="true">{getCategoryIcon(c)}</span>
               <span>{c.name}</span>
-              <span className="sidebar-item-count">{c.items.length}</span>
             </button>
           ))}
         </div>
@@ -213,16 +251,29 @@ export function NavPage(props: {
       <main className="main">
         <header className="banner">
           <div className="banner-row">
-            <div className="mobile-topbar">
-              <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)} aria-label="打开菜单">
-                <IconHamburger />
-              </button>
-              <div>
-                <div className="banner-title">{props.bannerTitle}</div>
+            <div className="banner-left">
+              <div className="mobile-topbar">
+                <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)} aria-label="打开菜单">
+                  <IconHamburger />
+                </button>
+                <div>
+                  <div className="banner-title">👋 {props.bannerTitle}</div>
+                </div>
+              </div>
+
+              <h1 className="banner-title">👋 {props.bannerTitle}</h1>
+
+              <div className="search">
+                <IconSearch />
+                <input
+                  className="search-input"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="搜索名称 / 网址 / 描述（支持拼音与缩写）"
+                  inputMode="search"
+                />
               </div>
             </div>
-
-            <h1 className="banner-title">{props.bannerTitle}</h1>
 
             <div className="banner-tools">
               <div className="banner-time" aria-label="当前时间">
@@ -231,17 +282,6 @@ export function NavPage(props: {
               </div>
             </div>
           </div>
-
-          <div className="search">
-            <IconSearch />
-            <input
-              className="search-input"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜索名称 / 网址 / 描述（支持拼音与缩写）"
-              inputMode="search"
-            />
-          </div>
         </header>
 
         <section className="content">
@@ -249,7 +289,6 @@ export function NavPage(props: {
             <>
               <div className="section-title">
                 <h2>搜索结果</h2>
-                <span>{content.length} 项</span>
               </div>
 
               <div className="grid">
@@ -257,7 +296,7 @@ export function NavPage(props: {
                   <a key={`${link.categoryId}:${link.id}`} className="card" href={link.url} target="_blank" rel="noreferrer">
                     <div className="card-icon">
                       <img
-                        src={getLinkIconUrl(link)}
+                        src={getLinkIconUrl(link, props.faviconProxyBase)}
                         alt=""
                         loading="lazy"
                         onError={(e) => applyDefaultIconOnError(e.currentTarget)}
@@ -275,8 +314,10 @@ export function NavPage(props: {
             config.categories.map((category) => (
               <div key={category.id} id={sectionId(category.id)} className="section-block" style={{ scrollMarginTop: 12 }}>
                 <div className="section-title">
-                  <h2>{category.name}</h2>
-                  <span>{category.items.length} 项</span>
+                  <h2>
+                    <span className="category-icon" aria-hidden="true">{getCategoryIcon(category)}</span>
+                    {category.name}
+                  </h2>
                 </div>
                 <div className="grid">
                   {category.items.map((link) => (
@@ -289,7 +330,7 @@ export function NavPage(props: {
                     >
                       <div className="card-icon">
                         <img
-                          src={getLinkIconUrl(link)}
+                          src={getLinkIconUrl(link, props.faviconProxyBase)}
                           alt=""
                           loading="lazy"
                           onError={(e) => applyDefaultIconOnError(e.currentTarget)}
@@ -308,11 +349,23 @@ export function NavPage(props: {
         </section>
 
         <div className="fab">
+          <button
+            className="fab-btn"
+            onClick={() => {
+              setSidebarHidden((v) => !v);
+              setSidebarOpen(false);
+            }}
+            aria-label="切换侧栏"
+            title={sidebarHidden ? '显示侧栏' : '隐藏侧栏'}
+          >
+            <IconPanelLeft />
+          </button>
+
           <button className="fab-btn" onClick={props.onToggleTheme} aria-label="切换主题">
             {props.resolvedTheme === 'dark' ? <IconSun /> : <IconMoon />}
           </button>
 
-          <button className="fab-btn" onClick={scrollToTop} aria-label="返回顶部" title="返回顶部">
+          <div className="fab-btn-wrap">
             <svg className="fab-progress" viewBox="0 0 48 48" aria-hidden="true">
               <circle
                 cx="24"
@@ -335,8 +388,11 @@ export function NavPage(props: {
                 transform="rotate(-90 24 24)"
               />
             </svg>
-            <IconArrowUp />
-          </button>
+
+            <button className="fab-btn" onClick={scrollToTop} aria-label="返回顶部" title="返回顶部">
+              <IconArrowUp />
+            </button>
+          </div>
         </div>
       </main>
     </div>

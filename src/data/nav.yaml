@@ -1,14 +1,17 @@
 site:
-  title: "nav.du.dev"
-  sidebarTitle: "我的收藏"
-  bannerTitle: "sonnedu’s 收藏夹"
-  description: "常用网站导航"
+  title: "nav-du"
+  sidebarTitle: "Nav-Du"
+  bannerTitle: "我的收藏夹"
+  description: ""
   defaultTheme: "system"
   timeZone: "Asia/Shanghai"
+  sidebarAvatarSrc: "/avatar/avatar.jpg"
+  deployedDomain: ""
+  faviconProxyBase: ""
 
 categories:
   - id: dev
-    name: "开发"
+    name: "开发编程"
     order: 1
     items:
       - id: github
@@ -22,7 +25,7 @@ categories:
         desc: "Node 包管理"
 
   - id: ai
-    name: "AI"
+    name: "人工智能"
     order: 2
     items:
       - id: chatgpt
@@ -31,7 +34,7 @@ categories:
         desc: "对话式 AI"
 
   - id: tools
-    name: "工具"
+    name: "常用工具"
     order: 3
     items:
       - id: tool-lu
@@ -40,7 +43,7 @@ categories:
         desc: "在线工具箱"
 
   - id: docs
-    name: "文档"
+    name: "技术文档"
     order: 4
     items:
       - id: mdn
@@ -77,7 +80,7 @@ categories:
         desc: "Pages/Workers 文档"
 
   - id: search
-    name: "搜索"
+    name: "搜索引擎"
     order: 5
     items:
       - id: google
@@ -110,7 +113,7 @@ categories:
         desc: "计算与知识引擎"
 
   - id: productivity
-    name: "效率"
+    name: "效率办公"
     order: 6
     items:
       - id: notion
@@ -147,7 +150,7 @@ categories:
         desc: "视频会议"
 
   - id: design
-    name: "设计"
+    name: "设计资源"
     order: 7
     items:
       - id: figma
@@ -184,7 +187,7 @@ categories:
         desc: "SVG 图标"
 
   - id: cloud
-    name: "云服务"
+    name: "云端服务"
     order: 8
     items:
       - id: cloudflare
@@ -221,7 +224,7 @@ categories:
         desc: "应用托管"
 
   - id: devops
-    name: "DevOps"
+    name: "运维工具"
     order: 9
     items:
       - id: docker-hub
@@ -254,7 +257,7 @@ categories:
         desc: "监控与日志"
 
   - id: news
-    name: "资讯"
+    name: "科技资讯"
     order: 10
     items:
       - id: hackernews
@@ -291,7 +294,7 @@ categories:
         desc: "创业与科技"
 
   - id: video
-    name: "视频"
+    name: "视频娱乐"
     order: 11
     items:
       - id: youtube
@@ -320,7 +323,7 @@ categories:
         desc: "在线课程"
 
   - id: shopping
-    name: "购物"
+    name: "购物平台"
     order: 12
     items:
       - id: amazon
@@ -353,7 +356,7 @@ categories:
         desc: "会员制商超"
 
   - id: finance
-    name: "金融"
+    name: "金融理财"
     order: 13
     items:
       - id: paypal
@@ -386,7 +389,7 @@ categories:
         desc: "支付与收款"
 
   - id: misc
-    name: "其他"
+    name: "其他收藏"
     order: 99
     items:
       - id: cloudflare

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test.describe('nav.du.dev', () => {
+test.describe('nav-du', () => {
   test('home loads and has basic UI', async ({ page }) => {
     await page.goto('/')
 
@@ -21,6 +21,20 @@ test.describe('nav.du.dev', () => {
     const after = await sidebar.evaluate((el) => el.getBoundingClientRect().top)
 
     expect(Math.abs(before - after)).toBeLessThan(1)
+  })
+
+  test('desktop can toggle sidebar visibility', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/')
+
+    const appShell = page.locator('.app-shell')
+    await expect(appShell).not.toHaveClass(/app-shell--sidebar-hidden/)
+
+    await page.getByRole('button', { name: '切换侧栏' }).click()
+    await expect(appShell).toHaveClass(/app-shell--sidebar-hidden/)
+
+    await page.getByRole('button', { name: '切换侧栏' }).click()
+    await expect(appShell).not.toHaveClass(/app-shell--sidebar-hidden/)
   })
 
   test('theme toggle switches html data-theme', async ({ page }) => {

@@ -1,6 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import type { NavConfig, NavLink } from '../lib/navTypes';
+import type { NavCategory, NavConfig, NavLink } from '../lib/navTypes';
+
+const CATEGORY_ICON_OPTIONS: Array<{ label: string; value: string }> = [
+  { label: '💻 开发', value: '💻' },
+  { label: '🤖 AI', value: '🤖' },
+  { label: '🧰 工具', value: '🧰' },
+  { label: '📚 文档', value: '📚' },
+  { label: '🔎 搜索', value: '🔎' },
+  { label: '✅ 效率', value: '✅' },
+  { label: '🎨 设计', value: '🎨' },
+  { label: '☁️ 云服务', value: '☁️' },
+  { label: '⚙️ DevOps', value: '⚙️' },
+  { label: '📰 资讯', value: '📰' },
+  { label: '🎬 视频', value: '🎬' },
+  { label: '🛒 购物', value: '🛒' },
+  { label: '💰 金融', value: '💰' },
+  { label: '📌 默认', value: '📌' },
+];
+
+function resolveCategoryIcon(category: NavCategory): string {
+  if (typeof category.icon === 'string' && category.icon.trim()) return category.icon.trim();
+  return '📌';
+}
+
 import { isNavConfig } from '../lib/navValidate';
 import { parseNavConfigFromYaml, sortCategories } from '../lib/navLoad';
 
@@ -416,9 +439,32 @@ export function AdminPage(props: {
           {props.config.categories.map((category) => (
             <div key={category.id} style={{ marginBottom: 18 }}>
               <div className="section-title">
-                <h2>{category.name}</h2>
-                <span>{category.items.length} 项</span>
-              </div>
+                 <h2>{category.name}</h2>
+                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                   <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>图标</span>
+                   <select
+                     value={resolveCategoryIcon(category)}
+                     onChange={async (e) => {
+                       const nextIcon = e.target.value;
+                       const next = {
+                         ...props.config,
+                         categories: props.config.categories.map((c) => (c.id === category.id ? { ...c, icon: nextIcon } : c)),
+                       };
+
+                       const ok = await props.onSaveConfig(next);
+                       if (!ok) setSaveError('保存失败：请确认 Pages Functions 与 KV 已配置');
+                       else setSaveError('');
+                     }}
+                     aria-label={`${category.name} 图标`}
+                   >
+                     {CATEGORY_ICON_OPTIONS.map((opt) => (
+                       <option key={opt.value} value={opt.value}>
+                         {opt.label}
+                       </option>
+                     ))}
+                   </select>
+                 </div>
+               </div>
               <div className="grid">
                 {category.items.map((link) => (
                   <button
