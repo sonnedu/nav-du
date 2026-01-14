@@ -13,6 +13,10 @@ function isAdminPath(pathname: string): boolean {
   return pathname === '/admin' || pathname.startsWith('/admin/');
 }
 
+function coerceEnvString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export default function App() {
   const { config, resetRemoteToBase, saveConfigRemote, reloadRemote } = useNavConfig();
 
@@ -24,6 +28,10 @@ export default function App() {
 
   const title = config.site.title || 'nav.du.dev';
   const subtitle = config.site.description || '';
+
+  const sidebarTitle = (coerceEnvString(import.meta.env.VITE_SIDEBAR_TITLE) || config.site.sidebarTitle || '我的收藏').trim();
+  const bannerTitle = (coerceEnvString(import.meta.env.VITE_BANNER_TITLE) || config.site.bannerTitle || "sonnedu’s 收藏夹").trim();
+  const timeZone = (coerceEnvString(import.meta.env.VITE_TIME_ZONE) || config.site.timeZone || 'Asia/Shanghai').trim();
 
   const onSaveConfig = async (next: NavConfig) => {
     const ok = await saveConfigRemote(next);
@@ -51,8 +59,10 @@ export default function App() {
   return (
     <NavPage
       config={config}
-      title={title}
+      sidebarTitle={sidebarTitle}
+      bannerTitle={bannerTitle}
       subtitle={subtitle}
+      timeZone={timeZone}
       resolvedTheme={resolved}
       onToggleTheme={toggleLightDark}
     />

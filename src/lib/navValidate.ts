@@ -36,8 +36,11 @@ export function isNavConfig(value: unknown): value is NavConfig {
   if (!isRecord(value)) return false;
 
   if (!isRecord(value.site) || !isString(value.site.title)) return false;
+  if ('sidebarTitle' in value.site && value.site.sidebarTitle !== undefined && !isString(value.site.sidebarTitle)) return false;
+  if ('bannerTitle' in value.site && value.site.bannerTitle !== undefined && !isString(value.site.bannerTitle)) return false;
   if ('description' in value.site && value.site.description !== undefined && !isString(value.site.description)) return false;
   if ('defaultTheme' in value.site && value.site.defaultTheme !== undefined && !isThemeMode(value.site.defaultTheme)) return false;
+  if ('timeZone' in value.site && value.site.timeZone !== undefined && !isString(value.site.timeZone)) return false;
 
   if (!Array.isArray(value.categories) || !value.categories.every(isNavCategory)) return false;
 

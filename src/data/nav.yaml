@@ -1,7 +1,10 @@
 site:
   title: "nav.du.dev"
+  sidebarTitle: "我的收藏"
+  bannerTitle: "sonnedu’s 收藏夹"
   description: "常用网站导航"
   defaultTheme: "system"
+  timeZone: "Asia/Shanghai"
 
 categories:
   - id: dev

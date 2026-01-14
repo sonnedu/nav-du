@@ -18,6 +18,7 @@ html {
 }
 
 html[data-theme='light'] {
+  --sidebar-width: 220px;
   --bg: #f0f2f5;
   --surface: #ffffff;
   --surface-hover: #f8fafc;
@@ -32,6 +33,7 @@ html[data-theme='light'] {
 }
 
 html[data-theme='dark'] {
+  --sidebar-width: 220px;
   --bg: #111827;
   --surface: #1f2937;
   --surface-hover: #243244;

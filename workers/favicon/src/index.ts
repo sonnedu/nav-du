@@ -99,7 +99,7 @@ function buildCacheKey(origin: string): Request {
 function withCommonHeaders(resp: Response): Response {
   const headers = new Headers(resp.headers);
   headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+  headers.set('Cache-Control', 'public, max-age=604800, s-maxage=2592000, stale-while-revalidate=86400');
   return new Response(resp.body, { status: resp.status, headers });
 }
 
@@ -191,7 +191,7 @@ async function getMeta(env: Env, key: string): Promise<FaviconMeta | null> {
 
 async function putMeta(env: Env, key: string, meta: FaviconMeta): Promise<void> {
   if (!env.FAVICON_KV) return;
-  await env.FAVICON_KV.put(key, JSON.stringify(meta), { expirationTtl: 86400 });
+  await env.FAVICON_KV.put(key, JSON.stringify(meta), { expirationTtl: 604800 });
 }
 
 async function deleteMeta(env: Env, key: string): Promise<void> {
@@ -207,19 +207,20 @@ function requireApiKey(env: Env, req: Request): boolean {
 }
 
 async function fetchFavicon(site: URL, origin: string): Promise<IconFetchResult> {
+  const host = site.hostname;
+
+  const ddgUrl = `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico`;
+  const ddg = await tryFetchImage(ddgUrl, 7000);
+  if (ddg) return { response: ddg, metaUrl: ddgUrl };
+
+  const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+  const google = await tryFetchImage(googleUrl, 7000);
+  if (google) return { response: google, metaUrl: googleUrl };
+
   const discoveredUrl = await discoverFaviconUrl(origin);
 
   const direct = await tryFetchImage(discoveredUrl, 9000);
   if (direct) return { response: direct, metaUrl: discoveredUrl };
-
-  const host = site.hostname;
-  const ddgUrl = `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico`;
-  const ddg = await tryFetchImage(ddgUrl, 8000);
-  if (ddg) return { response: ddg, metaUrl: ddgUrl };
-
-  const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
-  const google = await tryFetchImage(googleUrl, 8000);
-  if (google) return { response: google, metaUrl: googleUrl };
 
   return { response: defaultIconResponse(host) };
 }

@@ -23,8 +23,11 @@ export type NavCategory = {
 
 export type NavSite = {
   title: string;
+  sidebarTitle?: string;
+  bannerTitle?: string;
   description?: string;
   defaultTheme?: ThemeMode;
+  timeZone?: string;
 };
 
 export type NavConfig = {

@@ -118,8 +118,10 @@ function useActiveCategoryObserver(categories: NavCategory[], onActive: (categor
 
 export function NavPage(props: {
   config: NavConfig;
-  title: string;
+  sidebarTitle: string;
+  bannerTitle: string;
   subtitle: string;
+  timeZone: string;
   resolvedTheme: 'light' | 'dark';
   onToggleTheme: () => void;
 }) {
@@ -148,6 +150,32 @@ export function NavPage(props: {
   const ringCircumference = 2 * Math.PI * ringRadius;
   const ringOffset = ringCircumference * (1 - progress);
 
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const dateText = useMemo(() => {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: props.timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now);
+  }, [now, props.timeZone]);
+
+  const timeText = useMemo(() => {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: props.timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(now);
+  }, [now, props.timeZone]);
+
   return (
     <div className="app-shell app-shell--with-sidebar">
       {sidebarOpen ? <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} /> : null}
@@ -155,7 +183,7 @@ export function NavPage(props: {
       <aside className={`sidebar ${sidebarOpen ? 'is-open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-brand">
-            <div className="sidebar-title">{props.title}</div>
+            <div className="sidebar-title">{props.sidebarTitle}</div>
             {props.subtitle ? <div className="sidebar-subtitle">{props.subtitle}</div> : null}
           </div>
         </div>
@@ -190,13 +218,18 @@ export function NavPage(props: {
                 <IconHamburger />
               </button>
               <div>
-                <div className="banner-title">{props.title}</div>
+                <div className="banner-title">{props.bannerTitle}</div>
               </div>
             </div>
 
-            <h1 className="banner-title">{props.title}</h1>
+            <h1 className="banner-title">{props.bannerTitle}</h1>
 
-            <div className="banner-tools" />
+            <div className="banner-tools">
+              <div className="banner-time" aria-label="当前时间">
+                <div className="banner-time-main">{timeText}</div>
+                <div className="banner-time-sub">{dateText}</div>
+              </div>
+            </div>
           </div>
 
           <div className="search">
@@ -279,7 +312,7 @@ export function NavPage(props: {
             {props.resolvedTheme === 'dark' ? <IconSun /> : <IconMoon />}
           </button>
 
-          <button className="fab-btn" onClick={scrollToTop} aria-label="返回顶部">
+          <button className="fab-btn" onClick={scrollToTop} aria-label="返回顶部" title="返回顶部">
             <svg className="fab-progress" viewBox="0 0 48 48" aria-hidden="true">
               <circle
                 cx="24"
