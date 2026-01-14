@@ -35,15 +35,23 @@ npm run dev
 
 ## favicon 代理（Cloudflare Workers）
 
-本项目默认使用 favicon 代理地址：`https://favicon.du.dev/ico?url=...`
+前端会从环境变量读取 favicon 代理地址：
+- `VITE_FAVICON_PROXY_BASE`（例：`https://favicon.du.dev/ico`）
+- 不设置则默认使用：`https://favicon.du.dev/ico`
 
 Worker 代码在：`workers/favicon`。
 
-### 本地调试
+### 本地调试（推荐）
 
+终端 1：启动 Worker
 ```bash
 npm run worker:favicon:typecheck
 npm run worker:favicon:dev
+```
+
+终端 2：启动前端并指向本地 Worker（wrangler 默认端口 8787）
+```bash
+VITE_FAVICON_PROXY_BASE="http://127.0.0.1:8787/ico" npm run dev
 ```
 
 ### 部署

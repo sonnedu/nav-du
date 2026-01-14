@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import './App.css';
 
-import { getLinkIconUrl } from './lib/favicon';
+import { applyDefaultIconOnError, getLinkIconUrl } from './lib/favicon';
 import { loadNavConfig } from './lib/navState';
 import type { NavCategory, NavConfig, NavLink, ThemeMode } from './lib/navTypes';
 import { isNavConfig } from './lib/navValidate';
@@ -446,7 +446,14 @@ export default function App() {
                   }}
                 >
                   <div className="card-icon">
-                    <img src={getLinkIconUrl(link)} alt="" loading="lazy" />
+                    <img
+                      src={getLinkIconUrl(link)}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => {
+                        applyDefaultIconOnError(e.currentTarget);
+                      }}
+                    />
                   </div>
                   <div className="card-body">
                     <p className="card-title">{link.name}</p>

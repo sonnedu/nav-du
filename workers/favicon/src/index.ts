@@ -3,6 +3,60 @@ type FaviconMeta = {
   updatedAt: number;
 };
 
+type IconFetchResult = {
+  response: Response;
+  metaUrl?: string;
+};
+
+function defaultIconSvg(hostname: string): string {
+  const letter = hostname.trim().charAt(0).toUpperCase() || '•';
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="#3b82f6"/>
+  <text x="32" y="40" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="28" font-weight="800" fill="#ffffff">${letter}</text>
+</svg>`;
+}
+
+function defaultIconResponse(hostname: string): Response {
+  return new Response(defaultIconSvg(hostname), {
+    status: 200,
+    headers: {
+      'content-type': 'image/svg+xml; charset=UTF-8',
+    },
+  });
+}
+
+function looksLikeCloudflareChallenge(resp: Response): boolean {
+  if (resp.status !== 403) return false;
+  const mitigated = resp.headers.get('cf-mitigated');
+  if (mitigated && mitigated.toLowerCase().includes('challenge')) return true;
+  const server = resp.headers.get('server') ?? '';
+  return server.toLowerCase().includes('cloudflare');
+}
+
+function isImageResponse(resp: Response): boolean {
+  const type = resp.headers.get('content-type') ?? '';
+  return type.startsWith('image/') || type.includes('svg');
+}
+
+async function tryFetchImage(url: string, timeoutMs: number): Promise<Response | null> {
+  try {
+    const resp = await fetchWithTimeout(url, timeoutMs);
+    if (!resp.ok) return null;
+    if (!isImageResponse(resp)) return null;
+
+    const lengthHeader = resp.headers.get('content-length');
+    if (lengthHeader) {
+      const length = Number(lengthHeader);
+      if (!Number.isNaN(length) && length > 500_000) return null;
+    }
+
+    return resp;
+  } catch {
+    return null;
+  }
+}
+
 type Env = {
   FAVICON_KV?: KVNamespace;
   API_KEY?: string;
@@ -91,11 +145,22 @@ async function discoverFaviconUrl(origin: string): Promise<string> {
   const originUrl = new URL(origin);
   const faviconIco = new URL('/favicon.ico', originUrl).toString();
 
-  const icoResp = await fetchWithTimeout(faviconIco, 8000);
-  if (icoResp.ok) return faviconIco;
+  try {
+    const icoResp = await fetchWithTimeout(faviconIco, 8000);
+    if (icoResp.ok && !looksLikeCloudflareChallenge(icoResp)) return faviconIco;
+  } catch {
+    return faviconIco;
+  }
 
-  const htmlResp = await fetchWithTimeout(originUrl.toString(), 9000);
+  let htmlResp: Response;
+  try {
+    htmlResp = await fetchWithTimeout(originUrl.toString(), 9000);
+  } catch {
+    return faviconIco;
+  }
+
   if (!htmlResp.ok) return faviconIco;
+  if (looksLikeCloudflareChallenge(htmlResp)) return faviconIco;
 
   const html = await htmlResp.text();
   const href = parseIconHrefFromHtml(html);
@@ -141,6 +206,24 @@ function requireApiKey(env: Env, req: Request): boolean {
   return provided === expected;
 }
 
+async function fetchFavicon(site: URL, origin: string): Promise<IconFetchResult> {
+  const discoveredUrl = await discoverFaviconUrl(origin);
+
+  const direct = await tryFetchImage(discoveredUrl, 9000);
+  if (direct) return { response: direct, metaUrl: discoveredUrl };
+
+  const host = site.hostname;
+  const ddgUrl = `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico`;
+  const ddg = await tryFetchImage(ddgUrl, 8000);
+  if (ddg) return { response: ddg, metaUrl: ddgUrl };
+
+  const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+  const google = await tryFetchImage(googleUrl, 8000);
+  if (google) return { response: google, metaUrl: googleUrl };
+
+  return { response: defaultIconResponse(host) };
+}
+
 async function handleIco(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const url = new URL(request.url);
   const rawUrl = url.searchParams.get('url');
@@ -169,30 +252,25 @@ async function handleIco(request: Request, env: Env, ctx: ExecutionContext): Pro
   const cached = await caches.default.match(cacheKey);
   if (cached) return withCommonHeaders(cached);
 
-  let iconUrl: string;
   const meta = await getMeta(env, metaKey);
-  if (meta?.iconUrl) {
-    iconUrl = meta.iconUrl;
-  } else {
-    iconUrl = await discoverFaviconUrl(origin);
-    ctx.waitUntil(putMeta(env, metaKey, { iconUrl, updatedAt: Date.now() }));
+  const cachedUrl = meta?.iconUrl;
+
+  if (cachedUrl) {
+    const cachedResp = await tryFetchImage(cachedUrl, 9000);
+    if (cachedResp) {
+      const normalized = withCommonHeaders(cachedResp);
+      ctx.waitUntil(caches.default.put(cacheKey, normalized.clone()));
+      return normalized;
+    }
   }
 
-  const iconResp = await fetchWithTimeout(iconUrl, 9000);
-  if (!iconResp.ok) return new Response('Not found', { status: 404 });
+  const fetched = await fetchFavicon(site, origin);
 
-  const type = iconResp.headers.get('content-type') ?? '';
-  if (!type.startsWith('image/') && !type.includes('svg')) {
-    return new Response('Unsupported content-type', { status: 415 });
+  if (fetched.metaUrl) {
+    ctx.waitUntil(putMeta(env, metaKey, { iconUrl: fetched.metaUrl, updatedAt: Date.now() }));
   }
 
-  const lengthHeader = iconResp.headers.get('content-length');
-  if (lengthHeader) {
-    const length = Number(lengthHeader);
-    if (!Number.isNaN(length) && length > 500_000) return new Response('Too large', { status: 413 });
-  }
-
-  const normalized = withCommonHeaders(iconResp);
+  const normalized = withCommonHeaders(fetched.response);
   ctx.waitUntil(caches.default.put(cacheKey, normalized.clone()));
   return normalized;
 }
