@@ -12,17 +12,17 @@
 .sidebar {
   width: 240px;
   flex: 0 0 240px;
-  padding: 18px;
+  padding: 18px 18px 10px;
   border-right: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
   height: 100svh;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   z-index: 25;
 }
 
@@ -53,6 +53,19 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.sidebar-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  font-size: 12px;
+  color: var(--text-sub);
 }
 
 .sidebar-item {
@@ -131,10 +144,16 @@
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
 .icon-btn:hover {
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: var(--surface-hover);
+}
+
+.icon-btn:active {
+  transform: translateY(1px);
 }
 
 .icon-btn:focus-visible {
@@ -176,12 +195,18 @@
   padding: 18px 22px 90px;
 }
 
+.section-block + .section-block {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+
 .section-title {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
 }
 
 .section-title h2 {
@@ -294,10 +319,16 @@
   place-items: center;
   color: var(--text);
   position: relative;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
 .fab-btn:hover {
   border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: var(--surface-hover);
+}
+
+.fab-btn:active {
+  transform: translateY(1px);
 }
 
 .fab-btn:focus-visible {
@@ -403,6 +434,16 @@
   color: var(--text);
   padding: 10px 12px;
   cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.btn:hover {
+  background: var(--surface-hover);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn:focus-visible {

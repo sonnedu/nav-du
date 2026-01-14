@@ -75,11 +75,6 @@ function sectionId(categoryId: string): string {
   return `cat-${categoryId}`;
 }
 
-function scrollToCategory(categoryId: string): void {
-  const el = document.getElementById(sectionId(categoryId));
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 function useActiveCategoryObserver(categories: NavCategory[], onActive: (categoryId: string) => void): void {
   const onActiveRef = useRef(onActive);
@@ -171,16 +166,21 @@ export function NavPage(props: {
               key={c.id}
               className={`sidebar-item ${c.id === activeCategoryId ? 'is-active' : ''}`}
               onClick={() => {
+                setActiveCategoryId(c.id);
+                document.getElementById(sectionId(c.id))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 setSidebarOpen(false);
-                scrollToCategory(c.id);
               }}
+              title={c.name}
             >
               <span>{c.name}</span>
               <span className="sidebar-item-count">{c.items.length}</span>
             </button>
           ))}
         </div>
+
+        <div className="sidebar-footer">© 2026 du.dev</div>
       </aside>
+
 
       <main className="main">
         <header className="banner">
@@ -240,7 +240,7 @@ export function NavPage(props: {
             </>
           ) : (
             config.categories.map((category) => (
-              <div key={category.id} id={sectionId(category.id)} style={{ scrollMarginTop: 12 }}>
+              <div key={category.id} id={sectionId(category.id)} className="section-block" style={{ scrollMarginTop: 12 }}>
                 <div className="section-title">
                   <h2>{category.name}</h2>
                   <span>{category.items.length} 项</span>
