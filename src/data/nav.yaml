@@ -7,7 +7,7 @@ site:
   timeZone: "Asia/Shanghai"
   sidebarAvatarSrc: "/avatar/avatar.jpg"
   deployedDomain: ""
-  faviconProxyBase: ""
+  faviconProxyBase: "/ico"
   adminPath: "/admin"
 
 categories:
