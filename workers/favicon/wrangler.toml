@@ -2,10 +2,11 @@ name = "favicon-du-dev"
 main = "src/index.ts"
 compatibility_date = "2026-01-14"
 
-# 自动配置路由：拦截 demo.nav.du.dev/ico* 请求
-routes = [
-  { pattern = "demo.nav.du.dev/ico*", zone_name = "du.dev" }
-]
+# [routes]
+# Run 'wrangler deploy --routes "example.com/ico*"' or configure in Dashboard
+# routes = [
+#   { pattern = "example.com/ico*", zone_name = "example.com" }
+# ]
 
 [observability]
 enabled = true
