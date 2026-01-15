@@ -1,5 +1,5 @@
 name = "demo-nav-du"
-compatibility_date = "2026-01-14"
+compatibility_date = "2025-01-01"
 pages_build_output_dir = "dist"
 
 [[kv_namespaces]]
