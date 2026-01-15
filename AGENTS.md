@@ -1,4 +1,4 @@
-# Agent Guide (nav-du-dev)
+# Agent Guide (Nav-Du)
 
 For agentic coding assistants operating in this repository.
 
