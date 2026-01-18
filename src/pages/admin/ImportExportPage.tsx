@@ -124,7 +124,11 @@ export function ImportExportPage({
                     <button className="btn btn-sm" onClick={() => downloadFile(exportJson, 'nav.json')}>{m.admin.exportJson}</button>
                   </div>
                 </div>
-                <textarea className="admin-input admin-textarea-mono" value={exportJson} readOnly />
+                <textarea 
+                  className="admin-input admin-textarea-mono admin-textarea-auto" 
+                  value={exportJson} 
+                  readOnly 
+                />
               </div>
               <div>
                 <div className="flex-between-center mb-05">
@@ -134,7 +138,11 @@ export function ImportExportPage({
                     <button className="btn btn-sm" onClick={() => downloadFile(exportYaml, 'nav.yaml')}>{m.admin.exportYaml}</button>
                   </div>
                 </div>
-                <textarea className="admin-input admin-textarea-mono" value={exportYaml} readOnly />
+                <textarea 
+                  className="admin-input admin-textarea-mono admin-textarea-auto" 
+                  value={exportYaml} 
+                  readOnly 
+                />
               </div>
             </div>
           ) : (
@@ -146,10 +154,11 @@ export function ImportExportPage({
               <div>
                 <label className="admin-form-label">{m.admin.pasteJsonYaml}</label>
                 <textarea 
-                  className="admin-input admin-textarea-mono-lg" 
+                  className="admin-input admin-textarea-mono admin-textarea-auto" 
                   value={importText}
                   onChange={e => setImportText(e.target.value)}
                   placeholder="Paste JSON or YAML here..."
+                  style={{ minHeight: '300px' }}
                 />
               </div>
                {error && <div className="admin-error-text">{error}</div>}
