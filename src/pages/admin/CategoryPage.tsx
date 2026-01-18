@@ -8,7 +8,6 @@ import { AdminCombobox } from './AdminCombobox';
 import { AdminDialog } from './AdminDialog';
 import type { Messages } from '../../lib/i18nMessages';
 import { useI18n } from '../../lib/useI18n';
-import { DEFAULT_CATEGORY_ICONS } from '../../lib/navIcons';
 import type { NavCategory, NavConfig } from '../../lib/navTypes';
 import { deleteCategoryGroup, ensureCategoryIconsFromDefaults, ensureGroupOrder, renameCategoryGroup } from '../../lib/admin/navConfigOps';
 import { slugifyId } from '../../lib/admin/adminUtils';
@@ -48,17 +47,14 @@ function SortableCategoryRow(props: {
   isZh: boolean;
   m: Messages;
   groups: string[];
-  iconMode: 'preset' | 'custom';
-  defaultIconKeyByValue: Map<string, string>;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onUpdate: (updates: Partial<NavCategory>) => void;
   onMove: (direction: -1 | 1) => void;
   onDelete: () => void;
-  onIconModeChange: (mode: 'preset' | 'custom') => void;
 }) {
   const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.category.id });
-  const { category, isZh, m, groups, iconMode, defaultIconKeyByValue, canMoveUp, canMoveDown, onUpdate, onMove, onDelete, onIconModeChange } = props;
+  const { category, m, groups, canMoveUp, canMoveDown, onUpdate, onMove, onDelete } = props;
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -83,48 +79,13 @@ function SortableCategoryRow(props: {
         >
           <span className="drag-handle-dots" />
         </span>
-        <AdminCombobox
-          className="admin-combobox admin-icon-combobox"
-          inputClassName="admin-select"
-          listClassName="admin-combobox-list"
-          ariaLabel={m.admin.icon}
+        <input
+          className="admin-input admin-category-icon-input"
+          value={category.icon || ''}
+          onChange={(e) => onUpdate({ icon: e.target.value.trim() || undefined })}
           placeholder={m.admin.icon}
-          options={[
-            ...Object.entries(DEFAULT_CATEGORY_ICONS).map(([key, icon]) => ({
-              value: key,
-              label: `${icon} ${key}`,
-            })),
-            { value: 'custom', label: `✨ ${isZh ? '自定义' : 'custom'}` },
-          ]}
-          value={(() => {
-            if (iconMode === 'custom') return 'custom';
-            const effective = category.icon || DEFAULT_CATEGORY_ICONS[category.id] || '';
-            const key = defaultIconKeyByValue.get(effective);
-            return key ?? 'custom';
-          })()}
-          onChange={(value) => {
-            if (value === 'custom') {
-              onIconModeChange('custom');
-              if (category.icon && Object.values(DEFAULT_CATEGORY_ICONS).includes(category.icon)) {
-                onUpdate({ icon: undefined });
-              }
-              return;
-            }
-
-            onIconModeChange('preset');
-            const icon = DEFAULT_CATEGORY_ICONS[value];
-            onUpdate({ icon });
-          }}
+          title="Icon emoji or string"
         />
-        {iconMode === 'custom' && (
-          <input
-            className="admin-input admin-custom-icon-input"
-            value={category.icon || ''}
-            onChange={(e) => onUpdate({ icon: e.target.value.trim() || undefined })}
-            placeholder={isZh ? '图标' : 'emoji'}
-            title="Custom emoji or icon"
-          />
-        )}
       </div>
 
       <input
@@ -248,14 +209,6 @@ export function CategoryPage(props: CategoryPageProps) {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [lastSavedFingerprint, setLastSavedFingerprint] = useState(() => fingerprintCategoryEdits(categories, groupOrder));
 
-  const [iconModeByCategoryId, setIconModeByCategoryId] = useState<Record<string, 'preset' | 'custom'>>(() => {
-    const modes: Record<string, 'preset' | 'custom'> = {};
-    for (const c of props.config.categories) {
-      modes[c.id] = c.icon && !Object.values(DEFAULT_CATEGORY_ICONS).includes(c.icon) ? 'custom' : 'preset';
-    }
-    return modes;
-  });
-
   const [newCatName, setNewCatName] = useState('');
   const [newCatGroup, setNewCatGroup] = useState(DEFAULT_GROUP);
   const [newGroupName, setNewGroupName] = useState('');
@@ -326,14 +279,6 @@ export function CategoryPage(props: CategoryPageProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  const defaultIconKeyByValue = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const [key, icon] of Object.entries(DEFAULT_CATEGORY_ICONS)) {
-      map.set(icon, key);
-    }
-    return map;
-  }, []);
 
   const groupDomId = (group: string) => `admin-group:${group}`;
 
@@ -456,11 +401,6 @@ export function CategoryPage(props: CategoryPageProps) {
 
     setSaveState('saving');
 
-    const skip = new Set<string>();
-    for (const [id, mode] of Object.entries(iconModeByCategoryId)) {
-      if (mode === 'custom' && !categories.find((c) => c.id === id)?.icon) skip.add(id);
-    }
-
     const nextConfig = ensureCategoryIconsFromDefaults(
       ensureGroupOrder({
         ...props.config,
@@ -470,7 +410,6 @@ export function CategoryPage(props: CategoryPageProps) {
           groupOrder: groupOrder.length > 0 ? groupOrder : undefined,
         },
       }),
-      { skipCategoryIds: skip },
     );
 
     if (nextConfig.site.groupOrder) {
@@ -742,14 +681,11 @@ export function CategoryPage(props: CategoryPageProps) {
                               isZh={isZh}
                               m={m}
                               groups={groups}
-                              iconMode={iconModeByCategoryId[c.id] ?? 'preset'}
-                              defaultIconKeyByValue={defaultIconKeyByValue}
                               canMoveUp={canMoveUp}
                               canMoveDown={canMoveDown}
                               onUpdate={(updates) => handleUpdateCategory(c.id, updates)}
                               onMove={(dir) => moveCategoryWithinGroup(c.id, dir)}
                               onDelete={() => handleDeleteCategory(c.id)}
-                              onIconModeChange={(mode) => setIconModeByCategoryId(prev => ({ ...prev, [c.id]: mode }))}
                             />
                           );
                         })}

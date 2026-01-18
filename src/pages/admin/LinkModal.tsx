@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminCombobox } from './AdminCombobox';
 import { AdminDialog } from './AdminDialog';
 import { useI18n } from '../../lib/useI18n';
-import type { NavLink, NavCategory } from '../../lib/navTypes';
+import type { NavLink, NavCategory, IconConfig } from '../../lib/navTypes';
 import { slugifyId, normalizeUrl } from '../../lib/admin/adminUtils';
 
 interface LinkModalProps {
@@ -30,6 +30,14 @@ export function LinkModal({
   const [url, setUrl] = useState(() => link?.url ?? '');
   const [desc, setDesc] = useState(() => link?.desc ?? '');
   const [tags, setTags] = useState(() => link?.tags?.join(', ') ?? '');
+  const [iconValue, setIconValue] = useState(() => {
+    if (link?.icon?.type === 'url' || link?.icon?.type === 'base64') {
+      return link.icon.value;
+    }
+    return '';
+  });
+  const [iconType, setIconType] = useState<'proxy' | 'url' | 'base64'>(() => link?.icon?.type ?? 'proxy');
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
 
@@ -38,7 +46,9 @@ export function LinkModal({
     url !== (link?.url ?? '') ||
     desc !== (link?.desc ?? '') ||
     tags !== (link?.tags?.join(', ') ?? '') ||
-    targetCategoryId !== categoryId;
+    targetCategoryId !== categoryId ||
+    iconType !== (link?.icon?.type ?? 'proxy') ||
+    (iconType !== 'proxy' && iconValue !== ((link?.icon as any)?.value ?? ''));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -86,12 +96,20 @@ export function LinkModal({
     const normalizedUrl = normalizeUrl(url);
     const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
     
+    let icon: IconConfig | undefined;
+    if (iconType === 'proxy') {
+      icon = { type: 'proxy' };
+    } else if (iconValue.trim()) {
+      icon = { type: iconType, value: iconValue.trim() } as IconConfig;
+    }
+
     const nextLink: NavLink = {
       id: link?.id ?? slugifyId(name),
       name: name.trim(),
       url: normalizedUrl,
       desc: desc.trim() || undefined,
-      tags: tagList.length > 0 ? tagList : undefined
+      tags: tagList.length > 0 ? tagList : undefined,
+      icon
     };
     
     void onSave(targetCategoryId, nextLink);
@@ -163,6 +181,30 @@ export function LinkModal({
                   required
                 />
               </div>
+              
+              <div className="admin-form-group">
+                <label className="admin-form-label">{m.admin.icon}</label>
+                <div className="flex-col-gap-05">
+                  <select 
+                    className="admin-select"
+                    value={iconType}
+                    onChange={e => setIconType(e.target.value as any)}
+                  >
+                    <option value="proxy">Auto (Proxy)</option>
+                    <option value="url">External URL</option>
+                    <option value="base64">Base64 / Data URI</option>
+                  </select>
+                  {iconType !== 'proxy' && (
+                    <input 
+                      className="admin-input"
+                      value={iconValue}
+                      onChange={e => setIconValue(e.target.value)}
+                      placeholder={iconType === 'url' ? "https://example.com/icon.png" : "data:image/png;base64,..."}
+                    />
+                  )}
+                </div>
+              </div>
+
               <div className="admin-form-group">
                 <label className="admin-form-label">{m.admin.descriptionOptional}</label>
                 <textarea 
