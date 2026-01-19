@@ -84,11 +84,7 @@ export function LinkModal({
   if (!isOpen) return null;
 
   const handleAttemptClose = () => {
-    if (isDirty) {
-      setIsCloseConfirmOpen(true);
-    } else {
-      onClose();
-    }
+    onClose();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -165,11 +161,12 @@ export function LinkModal({
               </div>
               <div className="admin-form-group">
                 <label className="admin-form-label">{m.admin.siteName}</label>
-                <input 
+                <input
                   className="admin-input"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   required
+                  autoFocus
                 />
               </div>
               <div className="admin-form-group">
