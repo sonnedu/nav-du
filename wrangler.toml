@@ -1,5 +1,8 @@
-# ⚠️ 注意：此文件由部署脚本自动覆盖（wrangler-personal.toml 或 wrangler-demo.toml）
-# 请直接修改上述对应的特定配置文件。
+# ⚠️ DO NOT PUT PERSONAL KV IDS HERE
+# This file is tracked in git and should stay on the Demo config.
+# For deployment, use the local-only configs:
+# - wrangler-demo.toml
+# - wrangler-personal.toml
 
 name = "demo-nav-du"
 compatibility_date = "2025-01-01"
