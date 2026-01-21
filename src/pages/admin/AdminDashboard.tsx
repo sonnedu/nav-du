@@ -266,13 +266,49 @@ export function AdminDashboard(props: AdminDashboardProps) {
     return Object.values(selectedLinks).reduce((acc, ids) => acc + ids.length, 0);
   }, [selectedLinks]);
 
+  const sortedCategories = useMemo(() => {
+    const groupIndex = new Map<string, number>();
+    for (let i = 0; i < (config.site.groupOrder ?? []).length; i++) {
+      groupIndex.set(config.site.groupOrder![i], i);
+    }
+
+    const groupKeyOf = (c: NavCategory): string => (c.group?.trim() ? c.group.trim() : '');
+
+    return [...config.categories].sort((a, b) => {
+      const ga = groupKeyOf(a);
+      const gb = groupKeyOf(b);
+
+      if (ga !== gb) {
+        if (!ga && gb) return -1;
+        if (ga && !gb) return 1;
+
+        const ia = ga ? groupIndex.get(ga) : undefined;
+        const ib = gb ? groupIndex.get(gb) : undefined;
+
+        const ha = ia !== undefined;
+        const hb = ib !== undefined;
+        if (ha && hb) return ia - ib;
+        if (ha) return -1;
+        if (hb) return 1;
+
+        return ga.localeCompare(gb);
+      }
+
+      const oa = a.order ?? 0;
+      const ob = b.order ?? 0;
+      if (oa !== ob) return oa - ob;
+
+      return a.name.localeCompare(b.name);
+    });
+  }, [config.categories, config.site.groupOrder]);
+
   const allowSorting = !searchTerm.trim();
 
   const filteredCategories = useMemo(() => {
-    if (!searchTerm.trim()) return config.categories;
+    if (!searchTerm.trim()) return sortedCategories;
     const term = searchTerm.toLowerCase();
 
-    return config.categories
+    return sortedCategories
       .map((cat) => ({
         ...cat,
         items: cat.items.filter(
@@ -281,7 +317,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
         ),
       }))
       .filter((cat) => cat.items.length > 0);
-  }, [config.categories, searchTerm]);
+  }, [sortedCategories, searchTerm]);
 
   const handleToggleSelect = (categoryId: string, linkId: string) => {
     setSelectedLinks((prev) => {
@@ -382,7 +418,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
     if (!over) return;
     if (active.id === over.id) return;
 
-    const ids = config.categories.map((c) => c.id);
+    const ids = sortedCategories.map((c) => c.id);
     const fromIndex = ids.indexOf(String(active.id));
     const toIndex = ids.indexOf(String(over.id));
     if (fromIndex < 0 || toIndex < 0) return;
@@ -425,7 +461,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
     await props.onSaveConfig(nextConfig);
   };
 
-  const categoryIds = useMemo(() => config.categories.map((c) => c.id), [config.categories]);
+  const categoryIds = useMemo(() => sortedCategories.map((c) => c.id), [sortedCategories]);
 
   const renderLinksPage = () => (
     <>
@@ -435,7 +471,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
           <button
             className="btn btn-primary"
             onClick={() => {
-              setTargetCategoryId(config.categories[0]?.id || '');
+              setTargetCategoryId(sortedCategories[0]?.id || '');
               setIsAddLinkModalOpen(true);
             }}
           >
@@ -465,7 +501,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
           >
             <SortableContext items={categoryIds} strategy={verticalListSortingStrategy}>
               <div className="admin-categories">
-                {config.categories.map((category) => (
+                {sortedCategories.map((category) => (
                   <SortableCategorySection
                     key={category.id}
                     category={category}
@@ -726,7 +762,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
             listClassName="admin-combobox-list"
             ariaLabel={m.admin.moveToCategory}
             placeholder={m.admin.moveToCategory}
-            options={config.categories.map((c) => ({ value: c.id, label: c.name }))}
+            options={sortedCategories.map((c) => ({ value: c.id, label: c.name }))}
             value={bulkMoveToCategoryId}
             placement="top"
             onChange={(value) => {
@@ -758,7 +794,7 @@ export function AdminDashboard(props: AdminDashboardProps) {
         }}
         categoryId={editingLink?.categoryId || targetCategoryId}
         link={editingLink?.link}
-        categories={config.categories}
+        categories={sortedCategories}
         onSave={handleSaveLink}
         onDelete={handleDeleteLink}
       />

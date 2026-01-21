@@ -4,4 +4,4 @@ pages_build_output_dir = "dist"
 
 [[kv_namespaces]]
 binding = "NAV_CONFIG_KV"
-id = "82d6756624844cf8b640e7586c78cfee"
+id = "eda8d2c4a2a846dd8bdae2302df3c7d8"

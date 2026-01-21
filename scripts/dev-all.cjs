@@ -98,8 +98,8 @@ async function seedKvIfEmpty() {
   const err = json && typeof json === 'object' ? json.error : null;
   if (err !== 'not found') return;
 
-  const username = (process.env.DEV_ADMIN_USERNAME || '').trim() || 'dev';
-  const password = (process.env.DEV_ADMIN_PASSWORD || '').trim() || 'dev2026';
+  const username = (process.env.ADMIN_USERNAME || '').trim() || 'admin';
+  const password = (process.env.ADMIN_PASSWORD || '').trim() || 'admin2026';
 
   const login = await fetchJson(`${pagesOrigin}/api/login`, {
     method: 'POST',

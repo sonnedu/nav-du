@@ -51,6 +51,9 @@ export type Messages = {
     url: string;
     descriptionOptional: string;
     tagsOptional: string;
+    iconTypeAuto: string;
+    iconTypeExternal: string;
+    iconTypeBase64: string;
 
     categoriesGroupsTitle: string;
     group: string;
@@ -156,6 +159,9 @@ export const zhCN: Messages = {
     url: '网址',
     descriptionOptional: '说明（可选）',
     tagsOptional: '标签（可选，逗号分隔）',
+    iconTypeAuto: '自动代理 (Proxy)',
+    iconTypeExternal: '外部图片链接',
+    iconTypeBase64: 'Base64 / Data URI',
 
     categoriesGroupsTitle: '分类/分组管理',
     group: '分组',
@@ -262,6 +268,9 @@ export const en: Messages = {
     url: 'URL',
     descriptionOptional: 'Description (optional)',
     tagsOptional: 'Tags (optional, comma separated)',
+    iconTypeAuto: 'Auto (Proxy)',
+    iconTypeExternal: 'External URL',
+    iconTypeBase64: 'Base64 / Data URI',
 
     categoriesGroupsTitle: 'Categories / Groups',
     group: 'Group',

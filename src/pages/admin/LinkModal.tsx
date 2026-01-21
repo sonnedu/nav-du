@@ -48,23 +48,19 @@ export function LinkModal({
     tags !== (link?.tags?.join(', ') ?? '') ||
     targetCategoryId !== categoryId ||
     iconType !== (link?.icon?.type ?? 'proxy') ||
-    (iconType !== 'proxy' && iconValue !== ((link?.icon as any)?.value ?? ''));
+    (iconType !== 'proxy' && iconValue !== (link?.icon?.type !== 'proxy' ? link?.icon?.value : ''));
 
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.defaultPrevented) return;
       if (e.key === 'Escape') {
-        if (isDeleteDialogOpen || isCloseConfirmOpen) return;
-        
+        if (isDeleteDialogOpen) return;
+        if (isCloseConfirmOpen) {
+          setIsCloseConfirmOpen(false);
+          return;
+        }
+
         if (isDirty) {
           setIsCloseConfirmOpen(true);
         } else {
@@ -73,18 +69,18 @@ export function LinkModal({
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('keydown', handleEsc);
-    };
+    return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, isDirty, isDeleteDialogOpen, isCloseConfirmOpen, onClose]);
 
   if (!isOpen) return null;
 
   const handleAttemptClose = () => {
-    onClose();
+    if (isDirty) {
+      setIsCloseConfirmOpen(true);
+    } else {
+      onClose();
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -114,35 +110,11 @@ export function LinkModal({
 
   return (
     <>
-      <AdminDialog
-        isOpen={isCloseConfirmOpen}
-        onClose={() => setIsCloseConfirmOpen(false)}
-        onConfirm={() => {
-          setIsCloseConfirmOpen(false);
-          onClose();
-        }}
-        title={m.admin.unsavedChanges}
-        message={m.admin.confirmLeaveUnsaved}
-        variant="danger"
-      />
-      <AdminDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={() => {
-          if (link && onDelete) {
-            void onDelete(categoryId, link.id);
-            onClose();
-          }
-        }}
-        title={m.admin.delete}
-        message={m.admin.delete}
-        variant="danger"
-      />
       <div className="admin-modal-backdrop" onClick={handleAttemptClose}>
         <div className="admin-modal" onClick={e => e.stopPropagation()}>
           <div className="admin-modal-header">
             <h2 className="admin-modal-title">{link ? m.admin.editSiteTitle : m.admin.addSiteTitle}</h2>
-            <button className="btn btn-icon" onClick={handleAttemptClose}>✕</button>
+            <button className="btn btn-icon" onClick={handleAttemptClose} type="button">✕</button>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="admin-modal-body">
@@ -182,15 +154,20 @@ export function LinkModal({
               <div className="admin-form-group">
                 <label className="admin-form-label">{m.admin.icon}</label>
                 <div className="flex-col-gap-05">
-                  <select 
-                    className="admin-select"
+                  <AdminCombobox
+                    className="admin-combobox"
+                    inputClassName="admin-select"
+                    listClassName="admin-combobox-list"
+                    ariaLabel={m.admin.icon}
+                    placeholder={m.admin.icon}
+                    options={[
+                      { value: 'proxy', label: m.admin.iconTypeAuto },
+                      { value: 'url', label: m.admin.iconTypeExternal },
+                      { value: 'base64', label: m.admin.iconTypeBase64 },
+                    ]}
                     value={iconType}
-                    onChange={e => setIconType(e.target.value as any)}
-                  >
-                    <option value="proxy">Auto (Proxy)</option>
-                    <option value="url">External URL</option>
-                    <option value="base64">Base64 / Data URI</option>
-                  </select>
+                    onChange={value => setIconType(value as 'proxy' | 'url' | 'base64')}
+                  />
                   {iconType !== 'proxy' && (
                     <input 
                       className="admin-input"
@@ -239,6 +216,31 @@ export function LinkModal({
           </form>
         </div>
       </div>
+
+      <AdminDialog
+        isOpen={isCloseConfirmOpen}
+        onClose={() => setIsCloseConfirmOpen(false)}
+        onConfirm={() => {
+          setIsCloseConfirmOpen(false);
+          onClose();
+        }}
+        title={m.admin.unsavedChanges}
+        message={m.admin.confirmLeaveUnsaved}
+        variant="danger"
+      />
+      <AdminDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={() => {
+          if (link && onDelete) {
+            void onDelete(categoryId, link.id);
+            onClose();
+          }
+        }}
+        title={m.admin.delete}
+        message={m.admin.delete}
+        variant="danger"
+      />
     </>
   );
 }

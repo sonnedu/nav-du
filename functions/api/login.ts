@@ -12,6 +12,7 @@ import { createSessionToken, sessionCookieName } from './_session';
 
 type Env = {
   ADMIN_USERNAME?: string;
+  ADMIN_PASSWORD?: string;
   ADMIN_PASSWORD_SHA256?: string;
   SESSION_SECRET?: string;
   SESSION_TTL_SECONDS?: string;
@@ -86,24 +87,9 @@ function getTtlSeconds(env: Env): number {
   return Math.floor(n);
 }
 
-function isTruthyEnv(value: string | undefined): boolean {
-  if (!value) return false;
-  const v = value.trim().toLowerCase();
-  return v === '1' || v === 'true' || v === 'yes' || v === 'on';
-}
 
-function isLocalhostRequest(request: Request): boolean {
-  try {
-    const url = new URL(request.url);
-    const host = url.hostname.toLowerCase();
-    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  } catch {
-    return false;
-  }
-}
 
 async function resolveAdminAuth(
-  request: Request,
   env: Env,
 ): Promise<{ username: string; passwordSha256: string; sessionSecret: string; isDevDefault: boolean } | null> {
   const username = env.ADMIN_USERNAME;
@@ -114,19 +100,16 @@ async function resolveAdminAuth(
     return { username, passwordSha256, sessionSecret, isDevDefault: false };
   }
 
-  const allowDevDefault = isTruthyEnv(env.ALLOW_DEV_DEFAULT_ADMIN);
-  if (!allowDevDefault) return null;
-  if (!isLocalhostRequest(request)) return null;
-
-  const devUser = (env.DEV_ADMIN_USERNAME ?? '').trim() || 'dev';
-  const devPassword = (env.DEV_ADMIN_PASSWORD ?? '').trim() || 'dev2026';
-  const devPasswordSha256 = await sha256Hex(devPassword);
-  const devSessionSecret = (env.DEV_SESSION_SECRET ?? '').trim() || 'dev-only-session-secret-nav-du-2026';
+  // Default admin/admin2026 for both dev and demo
+  const defaultUsername = env.ADMIN_USERNAME || 'admin';
+  const defaultPassword = env.ADMIN_PASSWORD || 'admin2026';
+  const defaultPasswordSha256 = passwordSha256 || await sha256Hex(defaultPassword);
+  const defaultSessionSecret = env.SESSION_SECRET || 'nav-du-session-secret-2026';
 
   return {
-    username: devUser,
-    passwordSha256: devPasswordSha256,
-    sessionSecret: devSessionSecret,
+    username: defaultUsername,
+    passwordSha256: defaultPasswordSha256,
+    sessionSecret: defaultSessionSecret,
     isDevDefault: true,
   };
 }
@@ -136,7 +119,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   if (!isJsonRequest(request)) return textResponse('Expected application/json', 415);
 
-  const auth = await resolveAdminAuth(request, env);
+  const auth = await resolveAdminAuth(env);
   if (!auth) {
     return jsonResponse({ error: 'admin not configured' }, 500);
   }
