@@ -14,7 +14,9 @@
     "test:e2e:chromium": "playwright test --project=chromium-desktop",
     "worker:favicon:typecheck": "tsc -p workers/favicon/tsconfig.json --noEmit",
     "worker:favicon:dev": "wrangler dev --config workers/favicon/wrangler.toml",
-    "worker:favicon:deploy": "wrangler deploy --config workers/favicon/wrangler.toml"
+    "worker:favicon:deploy": "wrangler deploy --config workers/favicon/wrangler.toml",
+    "deploy:personal": "npm run build && cp wrangler-personal.toml wrangler.toml && wrangler pages deploy dist --project-name nav-du --branch main",
+    "deploy:demo": "npm run build && cp wrangler-demo.toml wrangler.toml && wrangler pages deploy dist --project-name demo-nav-du --branch main"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
