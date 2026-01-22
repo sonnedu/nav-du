@@ -52,6 +52,27 @@ Nav-Du 是一个基于 Vite + React + Cloudflare 生态构建的轻量、高效�
 - **输出目录**：`dist`
 - **环境变量**：添加 `VITE_FAVICON_PROXY_BASE`，值设为 `/ico`。
 
+#### Demo 项目 vs 个人项目（重要）
+
+本仓库同时维护 Demo 与个人站两套 Pages 项目配置：
+
+- Demo：`wrangler-demo.toml`（对应 `demo-nav-du`）
+- 个人：`wrangler-personal.toml`（对应 `nav-du`）
+
+注意：`wrangler.toml` 会被提交到 GitHub，默认保持为 Demo 配置。部署前通过 `cp` 切换配置：
+
+```bash
+# 部署 Demo
+cp wrangler-demo.toml wrangler.toml
+npx wrangler pages deploy dist --project-name demo-nav-du --branch main
+
+# 部署个人站
+cp wrangler-personal.toml wrangler.toml
+npx wrangler pages deploy dist --project-name nav-du --branch main
+```
+
+也可以直接使用脚本：`npm run deploy:demo` / `npm run deploy:personal`。
+
 ### 2. 部署图标代理 (Worker)
 - 进入 `workers/favicon` 目录。
 - 执行部署：`npx wrangler deploy`

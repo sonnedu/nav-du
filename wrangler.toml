@@ -1,13 +1,15 @@
-# ⚠️ DO NOT PUT PERSONAL KV IDS HERE
-# This file is tracked in git and should stay on the Demo config.
-# For deployment, use the local-only configs:
-# - wrangler-demo.toml
-# - wrangler-personal.toml
-
+# 【Demo 站部署配置】
+# 说明：wrangler.toml 会被提交到 GitHub，应始终保持为 Demo 配置，避免误把个人/生产 KV ID 提交。
+# Demo 项目名称: demo-nav-du (demo.nav.du.dev)
+# 部署指令: cp wrangler-demo.toml wrangler.toml && npx wrangler pages deploy dist --project-name demo-nav-du
+#
+# 个人站部署：请使用 wrangler-personal.toml（不要直接改这个文件）
+# 部署指令: cp wrangler-personal.toml wrangler.toml && npx wrangler pages deploy dist --project-name nav-du
 name = "demo-nav-du"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "dist"
 
 [[kv_namespaces]]
 binding = "NAV_CONFIG_KV"
+# 重要：这是 Demo 站的测试数据库 ID
 id = "eda8d2c4a2a846dd8bdae2302df3c7d8"
